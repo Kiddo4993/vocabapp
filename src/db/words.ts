@@ -75,6 +75,22 @@ export async function putWordsBatch(words: Word[]): Promise<number> {
   return written;
 }
 
+/** Write mode's "I was right" override (§3): records the accepted
+ * near-miss spelling as an alias so the same guess is accepted outright
+ * next time, instead of needing the override again. Doesn't touch
+ * contentHash — aliases aren't part of the hashed content (§2), so this
+ * never shows up as a "changed" word for delta re-import. */
+export async function addWordAlias(wordId: string, alias: string): Promise<void> {
+  const db = await getDB();
+  const word = await db.get('words', wordId);
+  if (!word) return;
+  const normalized = alias.trim();
+  if (!normalized) return;
+  const exists = word.aliases.some((a) => a.toLowerCase() === normalized.toLowerCase());
+  if (exists) return;
+  await db.put('words', { ...word, aliases: [...word.aliases, normalized] });
+}
+
 /** Looks up existing contentHash for a set of word ids in one bounded pass
  * — used by the delta-import comparison (§2) so re-importing an unchanged
  * file writes zero records. */
