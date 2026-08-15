@@ -77,3 +77,12 @@
     transition: none;
   }
 }
+
+/* Static container — same hard border/shadow language as press-surface,
+   but no :active press behaviour, for non-interactive cards/panels. */
+.surface {
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  background: var(--paper);
+}

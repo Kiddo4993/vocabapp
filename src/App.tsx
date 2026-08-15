@@ -1,13 +1,32 @@
-// Milestone 1 placeholder — proves the Vite/React/DB wiring boots.
-// Replaced by the routed shell (header, session bar, lazy study-mode routes)
-// in Milestone 4 (§10.4) onward.
+import { RouterProvider } from 'react-router-dom';
+import { useAsync } from '@/hooks/useAsync';
+import { loadSeedIfNeeded } from '@/db/seed';
+import { router } from '@/router';
+
 export default function App() {
-  return (
-    <div style={{ padding: 24 }}>
-      <h1 style={{ fontFamily: 'var(--font-display)', textTransform: 'uppercase' }}>
-        Vocab Lab
-      </h1>
-      <p>Foundation milestone — UI shell lands in a later commit.</p>
-    </div>
-  );
+  // First-run seed load (§2: fetched, never bundled) gates the router so
+  // Home never renders against an empty, not-yet-seeded database. Already
+  // a no-op after the first successful run (src/db/seed.ts).
+  const { loading, error } = useAsync(() => loadSeedIfNeeded(), []);
+
+  if (loading) {
+    return (
+      <div className="min-h-full flex items-center justify-center p-6" role="status" aria-live="polite">
+        <p className="font-display uppercase text-sm tracking-tight">Loading Vocab Lab…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-full flex items-center justify-center p-6">
+        <div className="surface p-5 max-w-sm">
+          <p className="font-display uppercase text-sm">Couldn't load your word bank</p>
+          <p className="font-body text-xs mt-2">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <RouterProvider router={router} />;
 }
