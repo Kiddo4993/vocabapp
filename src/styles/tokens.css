@@ -1,0 +1,79 @@
+/* ============================================================
+   Vocab Lab — neobrutalist design tokens (§7)
+   Hard edges, heavy borders, offset shadows, saturated flats.
+   No gradients, no glass, no blur, no radius (except .dot, a true circle).
+   ============================================================ */
+
+:root {
+  /* Palette — exact values from the brief */
+  --ink: #000000;
+  --paper: #fff4e0;
+  --yellow: #ffd400;
+  --pink: #ff5ca8;
+  --cyan: #00e0c6;
+  --violet: #9b7bff;
+  --lime: #b6ff3c;
+  --red: #ff3b69;
+
+  /* Leitner box colours — consistent meaning on every screen (§3/§7) */
+  --box-1: var(--red); /* just missed / same-session */
+  --box-2: var(--yellow); /* 1 day */
+  --box-3: var(--cyan); /* 3 days */
+  --box-4: var(--violet); /* 7 days */
+  --box-5: var(--lime); /* 21 days, mastered */
+
+  /* Type */
+  --font-display: 'Archivo Black', 'Arial Black', sans-serif;
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
+
+  /* Structure */
+  --border-w: 3px;
+  --border-w-heavy: 4px;
+  --radius: 0px;
+
+  /* Hard offset shadows — no blur, no opacity fade */
+  --shadow-sm: 3px 3px 0 var(--ink);
+  --shadow-md: 6px 6px 0 var(--ink);
+  --shadow-lg: 10px 10px 0 var(--ink);
+
+  /* Motion — short, linear-ish, never soft */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --duration-fast: 80ms;
+  --duration-base: 120ms;
+}
+
+/* Flat black dot grid — the only permitted "texture", used sparingly as a
+   background on section wells. No gradients, ever. */
+.dot-grid {
+  background-image: radial-gradient(var(--ink) 1.5px, transparent 1.5px);
+  background-size: 18px 18px;
+  background-color: var(--paper);
+}
+
+/* Shared shadow/press interaction used by buttons, cards, chips (§7:
+   "Pressed state translates by the offset and drops the shadow"). */
+.press-surface {
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  transition:
+    transform var(--duration-base) var(--ease),
+    box-shadow var(--duration-base) var(--ease);
+}
+
+.press-surface:active,
+.press-surface[data-pressed='true'] {
+  transform: translate(6px, 6px);
+  box-shadow: none;
+}
+
+.press-surface:focus-visible {
+  outline: var(--border-w-heavy) solid var(--ink);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .press-surface {
+    transition: none;
+  }
+}
