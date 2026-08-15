@@ -1,0 +1,343 @@
+{
+  "schemaVersion": 2,
+  "sets": [
+    {
+      "id": "tone-and-manner",
+      "name": "Tone & Manner",
+      "words": [
+        {
+          "id": "arch",
+          "term": "arch",
+          "pos": "adj.",
+          "definition": "Deliberately teasing in a knowing, playful way.",
+          "simple": "Cheeky and sly on purpose.",
+          "examples": ["She shot him an arch look over her glass."],
+          "synonyms": ["playful", "teasing", "cheeky", "mischievous", "sly", "knowing", "witty"],
+          "antonyms": ["earnest", "solemn"],
+          "notes": "Warm/flirty in friendly contexts; mocking when the target is not in on the joke."
+        },
+        {
+          "id": "ethereal",
+          "term": "ethereal",
+          "pos": "adj.",
+          "definition": "So delicate, light, or beautiful that it seems otherworldly.",
+          "simple": "Almost too beautiful to be real.",
+          "examples": ["The mountains looked ethereal in the morning mist.", "The dancer moved with ethereal grace."],
+          "synonyms": ["heavenly", "airy", "dreamlike", "celestial", "delicate"],
+          "antonyms": ["earthly", "coarse", "solid"]
+        },
+        {
+          "id": "eccentric",
+          "term": "eccentric",
+          "pos": "adj.",
+          "definition": "Unusual or unconventional in behaviour, appearance, or ideas.",
+          "simple": "Strange in a distinctive way.",
+          "examples": ["The professor was brilliant but eccentric."],
+          "synonyms": ["odd", "quirky", "peculiar", "unconventional"],
+          "antonyms": ["conventional", "orthodox"]
+        },
+        {
+          "id": "brazenly",
+          "term": "brazenly",
+          "pos": "adverb",
+          "definition": "In a bold, shameless, or openly disrespectful way, without showing embarrassment or fear.",
+          "simple": "Boldly and shamelessly, without embarrassment.",
+          "examples": [
+            "He brazenly lied even though everyone knew the truth.",
+            "She brazenly ignored the rules."
+          ],
+          "synonyms": ["shamelessly", "boldly", "audaciously", "impudently"],
+          "antonyms": ["timidly", "sheepishly"]
+        },
+        {
+          "id": "flippant",
+          "term": "flippant",
+          "pos": "adjective",
+          "definition": "Not showing enough seriousness or respect, especially when talking about something important or serious.",
+          "simple": "Casually disrespectful or not serious when seriousness is appropriate.",
+          "examples": [
+            "His flippant response to the serious question annoyed the teacher.",
+            "She made a flippant joke about the tragedy."
+          ],
+          "synonyms": ["careless", "disrespectful", "frivolous", "facetious", "unserious"],
+          "antonyms": ["earnest", "solemn"],
+          "notes": "Sits near arch in register: arch is knowing and playful, flippant is dismissive."
+        },
+        {
+          "id": "satire",
+          "term": "satire",
+          "pos": "noun",
+          "definition": "A way of using humor, irony, exaggeration, or ridicule to criticize or expose people's flaws, society, politics, or institutions.",
+          "simple": "Using humor or exaggeration to criticize something.",
+          "examples": [
+            "The show uses satire to make fun of politicians and government.",
+            "The novel is a satire of wealthy society."
+          ],
+          "synonyms": ["mockery", "parody", "ridicule", "irony", "caricature"],
+          "notes": "A fake news story showing a politician making an obviously ridiculous decision, written to expose how politicians behave, is satire."
+        }
+      ]
+    },
+    {
+      "id": "movement-and-motion",
+      "name": "Movement & Motion",
+      "words": [
+        {
+          "id": "writhing",
+          "term": "writhing",
+          "pos": "verb / adjective",
+          "definition": "Twisting or squirming violently, usually because of pain, discomfort, or strong emotion.",
+          "simple": "Twisting and squirming, usually from pain or discomfort.",
+          "examples": [
+            "The injured man was writhing in pain.",
+            "The snake was writhing on the ground."
+          ],
+          "synonyms": ["squirming", "twisting", "thrashing", "wriggling", "twisting in agony"],
+          "notes": "Stronger and more painful than squirming."
+        },
+        {
+          "id": "squirming",
+          "term": "squirming",
+          "pos": "verb / adjective",
+          "definition": "Twisting or moving around uncomfortably, often because of embarrassment, nervousness, or discomfort.",
+          "simple": "Moving around uncomfortably.",
+          "examples": [
+            "He was squirming in his seat during the awkward questions.",
+            "The worm was squirming on the ground."
+          ],
+          "synonyms": ["wriggling", "twisting", "fidgeting", "writhing"],
+          "notes": "Milder than writhing — discomfort or embarrassment rather than agony."
+        },
+        {
+          "id": "undulant",
+          "term": "undulant",
+          "pos": "adjective",
+          "definition": "Moving in a smooth, wave-like motion or having a wavy shape.",
+          "simple": "Wave-like or smoothly rising and falling.",
+          "examples": [
+            "The road followed the undulant hills.",
+            "The flag moved in an undulant pattern in the wind."
+          ],
+          "synonyms": ["wavy", "rippling", "rolling", "undulating"]
+        }
+      ]
+    },
+    {
+      "id": "wounds-and-rot",
+      "name": "Wounds & Rot",
+      "words": [
+        {
+          "id": "fester",
+          "term": "fester",
+          "pos": "verb",
+          "definition": "To rot or become infected; to get steadily worse when ignored.",
+          "simple": "Gets worse if you leave it alone.",
+          "examples": ["Ignore the wound and it will fester.", "The resentment festered for years."],
+          "synonyms": ["putrefy", "rankle", "worsen"],
+          "notes": "Works literally (a wound) and figuratively (a grudge)."
+        },
+        {
+          "id": "suppurate",
+          "term": "suppurate",
+          "pos": "verb",
+          "definition": "To form or discharge pus.",
+          "simple": "To ooze pus.",
+          "examples": ["The cut began to suppurate after two days."],
+          "synonyms": ["discharge", "weep", "ooze"]
+        },
+        {
+          "id": "septic",
+          "term": "septic",
+          "pos": "adj.",
+          "definition": "Infected with harmful bacteria.",
+          "simple": "Full of infection.",
+          "examples": ["The untreated wound turned septic."],
+          "synonyms": ["infected", "contaminated", "putrid"],
+          "antonyms": ["antiseptic", "sterile"]
+        },
+        {
+          "id": "avert",
+          "term": "avert",
+          "pos": "verb",
+          "definition": "To turn away, or to stop something bad from happening.",
+          "simple": "Look away, or prevent.",
+          "examples": ["She averted her eyes.", "They tried to avert disaster."],
+          "synonyms": ["deflect", "forestall", "prevent", "turn aside"]
+        },
+        {
+          "id": "scourge",
+          "term": "scourge",
+          "pos": "n. / verb",
+          "definition": "Something that causes widespread suffering; historically, to whip as punishment.",
+          "simple": "A source of great suffering.",
+          "examples": ["Disease was the scourge of the village.", "The country was scourged by famine."],
+          "synonyms": ["plague", "blight", "menace", "affliction", "curse"]
+        }
+      ]
+    },
+    {
+      "id": "proof-and-decay",
+      "name": "Proof & Decay",
+      "words": [
+        {
+          "id": "corroborate",
+          "term": "corroborate",
+          "pos": "verb",
+          "definition": "To confirm something with supporting evidence.",
+          "simple": "To back up a claim.",
+          "examples": ["A second witness corroborated her account."],
+          "synonyms": ["confirm", "substantiate", "verify", "validate"],
+          "antonyms": ["refute", "contradict"],
+          "notes": "Easy confusion pair with corrode — same first four letters, unrelated meanings."
+        },
+        {
+          "id": "corrode",
+          "term": "corrode",
+          "pos": "verb",
+          "definition": "To wear away slowly, usually by chemical action such as rust.",
+          "simple": "To rust away.",
+          "examples": ["Salt air corroded the railing."],
+          "synonyms": ["erode", "eat away", "oxidise", "degrade"],
+          "notes": "Confusion pair with corroborate."
+        },
+        {
+          "id": "usurper",
+          "term": "usurper",
+          "pos": "noun",
+          "definition": "Someone who wrongfully seizes another's position, power, or authority.",
+          "simple": "A power thief.",
+          "examples": ["The king was overthrown by a usurper."],
+          "synonyms": ["pretender", "impostor", "occupier"],
+          "notes": "Verb form: usurp."
+        }
+      ]
+    },
+    {
+      "id": "yield-family",
+      "name": "Yield & Resistance",
+      "words": [
+        {
+          "id": "yield",
+          "term": "yield",
+          "pos": "verb / noun",
+          "definition": "To produce something, or to give way and surrender. As a noun, the amount produced.",
+          "simple": "Produce, or give way.",
+          "examples": ["The farm yielded a large harvest.", "Drivers must yield to pedestrians.", "The wheat yield was excellent this season."],
+          "synonyms": ["produce", "generate", "surrender", "give way", "submit"],
+          "antonyms": ["resist", "withhold"]
+        },
+        {
+          "id": "unyielding",
+          "term": "unyielding",
+          "pos": "adj.",
+          "definition": "Refusing to give in, bend, or change.",
+          "simple": "Firm and inflexible.",
+          "examples": ["She remained unyielding in her beliefs.", "The metal was unyielding and difficult to bend."],
+          "synonyms": ["steadfast", "resolute", "inflexible", "uncompromising"],
+          "antonyms": ["pliable", "compliant", "yielding"]
+        }
+      ]
+    },
+    {
+      "id": "science-and-anatomy",
+      "name": "Science & Anatomy",
+      "words": [
+        {
+          "id": "concentric",
+          "term": "concentric",
+          "pos": "adj.",
+          "definition": "Sharing the same centre.",
+          "simple": "Circles inside circles, same middle.",
+          "examples": ["The target is made of concentric circles."],
+          "antonyms": ["eccentric"],
+          "notes": "In lifting, the concentric phase is the shortening phase of a muscle contraction."
+        },
+        {
+          "id": "sagittal",
+          "term": "sagittal",
+          "pos": "adj.",
+          "definition": "Relating to the plane that divides the body into left and right halves.",
+          "simple": "The front-to-back movement plane.",
+          "examples": ["A squat moves mainly in the sagittal plane."]
+        },
+        {
+          "id": "isotopic",
+          "term": "isotopic",
+          "pos": "adj.",
+          "definition": "Relating to isotopes — atoms of the same element with different neutron counts.",
+          "simple": "About isotope variants of an element.",
+          "examples": ["Scientists use isotopic analysis to date fossils."]
+        },
+        {
+          "id": "hydrodynamic",
+          "term": "hydrodynamic",
+          "pos": "adj.",
+          "definition": "Shaped to move through water efficiently by reducing drag.",
+          "simple": "Streamlined for water.",
+          "examples": ["A shark has a hydrodynamic body.", "Swimmers wear hydrodynamic suits to cut drag."],
+          "synonyms": ["streamlined", "low-drag"],
+          "notes": "Water counterpart of aerodynamic."
+        },
+        {
+          "id": "aerodynamic",
+          "term": "aerodynamic",
+          "pos": "adj.",
+          "definition": "Shaped to move through air efficiently by reducing drag.",
+          "simple": "Streamlined for air.",
+          "examples": ["The car's aerodynamic shape improves fuel economy."],
+          "synonyms": ["streamlined", "low-drag"],
+          "notes": "Air counterpart of hydrodynamic."
+        },
+        {
+          "id": "agonist",
+          "term": "agonist",
+          "pos": "noun",
+          "definition": "The primary muscle performing a movement.",
+          "simple": "The muscle doing the work.",
+          "examples": ["In a bicep curl, the agonist is the biceps brachii."]
+        },
+        {
+          "id": "antagonist",
+          "term": "antagonist",
+          "pos": "noun",
+          "definition": "The muscle that opposes the agonist.",
+          "simple": "The muscle working against the movement.",
+          "examples": ["In a bicep curl, the antagonist is the triceps brachii."]
+        },
+        {
+          "id": "synergist",
+          "term": "synergist",
+          "pos": "noun",
+          "definition": "A muscle that assists the agonist in a movement.",
+          "simple": "The helper muscle.",
+          "examples": ["The brachialis acts as a synergist during a curl."]
+        },
+        {
+          "id": "fixator",
+          "term": "fixator",
+          "pos": "noun",
+          "definition": "A muscle that holds part of the body steady during movement; a stabiliser.",
+          "simple": "The muscle keeping you still.",
+          "examples": ["Shoulder fixators keep the joint stable through the curl."],
+          "synonyms": ["stabiliser"]
+        }
+      ]
+    },
+    {
+      "id": "business-and-agency",
+      "name": "Business & Agency",
+      "words": [
+        {
+          "id": "subagent",
+          "term": "subagent",
+          "pos": "noun",
+          "definition": "An agent appointed by another agent to carry out part of that agent's duties.",
+          "simple": "An agent working under an agent.",
+          "examples": ["The travel agency hired a subagent to sell packages in another city."],
+          "synonyms": ["delegate", "intermediary", "representative"],
+          "notes": "Works under the original agent's authority, not directly for the principal."
+        }
+      ]
+    }
+  ]
+}

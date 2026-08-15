@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+.DS_Store
+coverage/
+data/raw/*.txt
+!data/raw/.gitkeep
+data/sat-core.json
+*.log
+*.tsbuildinfo
