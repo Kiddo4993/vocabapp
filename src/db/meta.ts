@@ -99,3 +99,17 @@ export async function getSearchIndexMeta(): Promise<PersistedSearchIndex | undef
 export async function setSearchIndexMeta(value: PersistedSearchIndex): Promise<void> {
   await setMeta(SEARCH_INDEX_KEY, value);
 }
+
+/** Match mode's personal-best timer, stored per set (§3: "personal best
+ * stored per set"). Milliseconds, so the UI can format to two decimals. */
+function matchBestKey(setId: string): string {
+  return `matchBest:${setId}`;
+}
+
+export async function getMatchBest(setId: string): Promise<number | undefined> {
+  return getMeta<number>(matchBestKey(setId));
+}
+
+export async function setMatchBest(setId: string, ms: number): Promise<void> {
+  await setMeta(matchBestKey(setId), ms);
+}
