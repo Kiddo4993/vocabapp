@@ -59,6 +59,37 @@ export async function countWordsInSet(setId: string): Promise<number> {
   return db.countFromIndex('words', 'setId', setId);
 }
 
+/** Store-wide count (all sets), same O(1)-ish cost as the per-set count. */
+export async function countAllWords(): Promise<number> {
+  const db = await getDB();
+  return db.count('words');
+}
+
+export interface AllWordsPage {
+  items: Word[];
+  nextAfter?: string;
+}
+
+/** Pages every word ordered by term via the `term` index, for Browse's
+ * "all sets" view — same bounded-cursor discipline as getWordsBySetPage,
+ * just without a setId filter. */
+export async function getWordsPage(opts: { after?: string; limit?: number } = {}): Promise<AllWordsPage> {
+  const limit = opts.limit ?? 200;
+  const db = await getDB();
+  const tx = db.transaction('words', 'readonly');
+  const index = tx.store.index('term');
+  const range = opts.after ? IDBKeyRange.lowerBound(opts.after, true) : undefined;
+  let cursor = await index.openCursor(range);
+  const items: Word[] = [];
+  while (cursor && items.length < limit) {
+    items.push(cursor.value);
+    cursor = await cursor.continue();
+  }
+  await tx.done;
+  const nextAfter = items.length === limit && cursor ? items[items.length - 1].term : undefined;
+  return { items, nextAfter };
+}
+
 /** Writes words in transactions of up to 500 records (§2), returning how
  * many were actually written (callers doing delta-import should filter to
  * changed words before calling this so "0 records written" is meaningful). */
@@ -73,6 +104,24 @@ export async function putWordsBatch(words: Word[]): Promise<number> {
     written += batch.length;
   }
   return written;
+}
+
+/** The one sanctioned full-corpus read (§2): search-index construction and
+ * stats aggregation both need to see every word at least once, and both
+ * run in the worker, off the main thread — never called from UI code.
+ * Still walks a cursor rather than calling getAll(), consistent with the
+ * rest of this module. */
+export async function getAllWordsForIndexing(): Promise<Word[]> {
+  const db = await getDB();
+  const tx = db.transaction('words', 'readonly');
+  const words: Word[] = [];
+  let cursor = await tx.store.openCursor();
+  while (cursor) {
+    words.push(cursor.value);
+    cursor = await cursor.continue();
+  }
+  await tx.done;
+  return words;
 }
 
 /** Write mode's "I was right" override (§3): records the accepted

@@ -41,7 +41,7 @@ async function handleRequest(request: WorkerRequest): Promise<void> {
       return;
 
     case 'search:query':
-      post(await handleSearchQuery(request.id));
+      post(await handleSearchQuery(request.id, request.payload.query, request.payload.limit));
       return;
 
     case 'stats:compute':
