@@ -103,6 +103,26 @@ describe('seed load', () => {
     expect(dueIds.sort()).toEqual(['unyielding', 'yield']);
   });
 
+  it('seeds the §6 confusion pairs into missedAgainst bidirectionally', async () => {
+    await loadSeedIfNeeded(fakeFetch());
+    const db = await getDB();
+    const pairs: [string, string][] = [
+      ['corroborate', 'corrode'],
+      ['concentric', 'eccentric'],
+      ['hydrodynamic', 'aerodynamic'],
+      ['agonist', 'antagonist'],
+      ['yield', 'unyielding'],
+      ['writhing', 'squirming'],
+      ['arch', 'flippant'],
+    ];
+    for (const [a, b] of pairs) {
+      const pa = await db.get('progress', a);
+      const pb = await db.get('progress', b);
+      expect(pa?.missedAgainst[b]).toBe(1);
+      expect(pb?.missedAgainst[a]).toBe(1);
+    }
+  });
+
   it('never resets an existing progress record when seeding again after a wipe of just the loaded flag', async () => {
     await loadSeedIfNeeded(fakeFetch());
     const db = await getDB();

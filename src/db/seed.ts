@@ -6,6 +6,25 @@ import { putWordsBatch } from './words';
 
 const SEED_URL = '/data/words.seed.json';
 
+/** §6: "Seed these confusion pairs at import time rather than waiting for
+ * them to be learned from wrong answers." These are semantic/orthographic
+ * pairs the near-neighbour + missedAgainst heuristics in
+ * src/lib/confusion.ts wouldn't reliably surface on their own (e.g.
+ * corroborate/corrode share only a prefix, arch/flippant are a register
+ * confusion with no orthographic relation at all) — so they're seeded
+ * directly into missedAgainst, bidirectionally, with a synthetic count of
+ * 1, exactly as if each word had already been missed once against the
+ * other. */
+const SEEDED_CONFUSION_PAIRS: [string, string][] = [
+  ['corroborate', 'corrode'],
+  ['concentric', 'eccentric'],
+  ['hydrodynamic', 'aerodynamic'],
+  ['agonist', 'antagonist'],
+  ['yield', 'unyielding'],
+  ['writhing', 'squirming'],
+  ['arch', 'flippant'],
+];
+
 export function rawWordToWord(raw: RawSeedWord, setId: string, now: number, origin: string): Word {
   const word: Word = {
     id: raw.id,
@@ -63,11 +82,23 @@ export async function loadSeedIfNeeded(fetchImpl: typeof fetch = fetch): Promise
   // delta re-import safe (§2): touching a word's content must never reset
   // its existing mastery.
   const progressRecords = [];
+  const newlySeeded = new Map<string, ReturnType<typeof initialProgress>>();
   for (const w of words) {
     const existing = await getProgress(w.id);
     if (existing) continue;
-    progressRecords.push(initialProgress(w.id, w.setId, now, origin));
+    const p = initialProgress(w.id, w.setId, now, origin);
+    progressRecords.push(p);
+    newlySeeded.set(w.id, p);
   }
+
+  for (const [a, b] of SEEDED_CONFUSION_PAIRS) {
+    const pa = newlySeeded.get(a);
+    const pb = newlySeeded.get(b);
+    if (!pa || !pb) continue; // only seed pairs where both sides are freshly created
+    pa.missedAgainst[b] = (pa.missedAgainst[b] ?? 0) + 1;
+    pb.missedAgainst[a] = (pb.missedAgainst[a] ?? 0) + 1;
+  }
+
   await putProgressBatch(progressRecords);
 
   await markSeedLoaded();

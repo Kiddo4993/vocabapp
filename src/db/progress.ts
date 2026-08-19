@@ -95,6 +95,16 @@ export async function getStarredPage(limit = 200, afterWordId?: string): Promise
   return items;
 }
 
+/** Every progress record for a set, via a full-range scan of the
+ * [setId+due] compound index — an index range scan (bounded by the set's
+ * size), not a table walk. Used by stats aggregation (§4) and confusion
+ * pairs (§4), both of which run in the worker. */
+export async function getAllProgressForSet(setId: string): Promise<ProgressRecord[]> {
+  const db = await getDB();
+  const range = IDBKeyRange.bound([setId, -Infinity], [setId, Infinity]);
+  return db.getAllFromIndex('progress', 'setId+due', range);
+}
+
 /** Creates a fresh box-1, same-session-due progress record for a newly
  * imported word. Doesn't touch an existing record for the same wordId —
  * callers must check existence first so re-import never resets mastery

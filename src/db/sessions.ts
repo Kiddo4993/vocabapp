@@ -31,6 +31,27 @@ export async function clearActiveSession(): Promise<void> {
   await setMeta(ACTIVE_SESSION_KEY, undefined);
 }
 
+/** Recent sessions touching a given set, newest-first scan capped at
+ * `scanLimit` (sessions has no setId index, so this walks the startedAt
+ * index — bounded, not a full table walk) filtered down to the ones that
+ * mention this set, then capped at `limit` for stats' accuracy trend
+ * (§4). */
+export async function getRecentSessionsForSet(setId: string, limit = 30, scanLimit = 300): Promise<SessionRecord[]> {
+  const db = await getDB();
+  const tx = db.transaction('sessions', 'readonly');
+  const index = tx.store.index('startedAt');
+  let cursor = await index.openCursor(null, 'prev');
+  const items: SessionRecord[] = [];
+  let scanned = 0;
+  while (cursor && items.length < limit && scanned < scanLimit) {
+    if (cursor.value.setIds.includes(setId)) items.push(cursor.value);
+    scanned++;
+    cursor = await cursor.continue();
+  }
+  await tx.done;
+  return items;
+}
+
 /** Bounded page of recent sessions for a mode — used by stats (§4: accuracy
  * trend over the last 30 sessions). Reads newest-first off the `startedAt`
  * index, never getAll(). */

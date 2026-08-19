@@ -45,7 +45,7 @@ async function handleRequest(request: WorkerRequest): Promise<void> {
       return;
 
     case 'stats:compute':
-      post(await handleStatsCompute(request.id));
+      post(await handleStatsCompute(request.id, request.payload.setId));
       return;
 
     default: {
