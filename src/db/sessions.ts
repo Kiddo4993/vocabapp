@@ -31,6 +31,13 @@ export async function clearActiveSession(): Promise<void> {
   await setMeta(ACTIVE_SESSION_KEY, undefined);
 }
 
+/** Every session in the database. Full-export use only (§4 backup) —
+ * never called from an interactive UI path. */
+export async function getAllSessions(): Promise<SessionRecord[]> {
+  const db = await getDB();
+  return db.getAll('sessions');
+}
+
 /** Recent sessions touching a given set, newest-first scan capped at
  * `scanLimit` (sessions has no setId index, so this walks the startedAt
  * index — bounded, not a full table walk) filtered down to the ones that

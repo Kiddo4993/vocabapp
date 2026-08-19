@@ -95,6 +95,13 @@ export async function getStarredPage(limit = 200, afterWordId?: string): Promise
   return items;
 }
 
+/** Every progress record in the database. Full-export use only (§4
+ * backup) — never called from an interactive UI path. */
+export async function getAllProgress(): Promise<ProgressRecord[]> {
+  const db = await getDB();
+  return db.getAll('progress');
+}
+
 /** Every progress record for a set, via a full-range scan of the
  * [setId+due] compound index — an index range scan (bounded by the set's
  * size), not a table walk. Used by stats aggregation (§4) and confusion

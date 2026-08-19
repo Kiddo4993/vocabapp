@@ -147,6 +147,35 @@ export function parseWordList(text: string): ParseResult {
       }
     }
 
+    // Format 1a: `term<TAB or dash>definition` on one line. Checked before
+    // the bare-headword branch below on purpose: BARE_TERM_RE's character
+    // class allows spaces and hyphens (so hyphenated terms like
+    // "well-known" can match it as a plain headword), which means a
+    // genuine one-line "term - definition" string matches BARE_TERM_RE
+    // too — it's just letters/spaces/a hyphen throughout. Without this
+    // ordering, a dash-separated line immediately followed by another
+    // parseable line got misread as a bare headword whose gloss was that
+    // *following* line, silently swallowing it. Format 1a requires an
+    // actual separator, so it's the more specific/reliable signal and
+    // wins whenever it matches.
+    const inlineMatch = INLINE_GLOSS_RE.exec(line);
+    if (inlineMatch) {
+      const [, term, gloss] = inlineMatch;
+      const { definition, examples } = extractExamples(gloss);
+      if (definition) {
+        words.push({
+          id: slugify(term),
+          term: term.trim().toLowerCase(),
+          definition,
+          examples,
+          senses: [],
+          sourceLine: lineNo,
+        });
+        i++;
+        continue;
+      }
+    }
+
     // Format 3: bare headword followed by numbered senses.
     if (BARE_TERM_RE.test(line.trim())) {
       const senses: ParsedSense[] = [];
@@ -195,25 +224,6 @@ export function parseWordList(text: string): ParseResult {
           i += 2;
           continue;
         }
-      }
-    }
-
-    // Format 1a: `term<TAB or dash>definition` on one line.
-    const inlineMatch = INLINE_GLOSS_RE.exec(line);
-    if (inlineMatch) {
-      const [, term, gloss] = inlineMatch;
-      const { definition, examples } = extractExamples(gloss);
-      if (definition) {
-        words.push({
-          id: slugify(term),
-          term: term.trim().toLowerCase(),
-          definition,
-          examples,
-          senses: [],
-          sourceLine: lineNo,
-        });
-        i++;
-        continue;
       }
     }
 
