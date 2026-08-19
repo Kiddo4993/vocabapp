@@ -24,7 +24,16 @@ export type WorkerRequest =
   | { id: string; type: 'import:start'; payload: ImportStartPayload }
   | { id: string; type: 'search:build' }
   | { id: string; type: 'search:query'; payload: { query: string; limit?: number } }
-  | { id: string; type: 'stats:compute'; payload: { setId?: string } };
+  | { id: string; type: 'stats:compute'; payload: { setId: string } };
+
+// Kept as `unknown` here (rather than importing SetStats/ConfusionPair
+// from src/lib/stats.ts and src/lib/confusion.ts) so protocol.ts stays a
+// leaf module with zero dependencies of its own — callers on both sides
+// already import those types directly where they need the real shape.
+export interface StatsResultPayload {
+  stats: unknown; // SetStats
+  confusionPairs: unknown[]; // ConfusionPair[]
+}
 
 export type WorkerResponse =
   | { id: string; type: 'pong' }
@@ -36,7 +45,7 @@ export type WorkerResponse =
     }
   | { id: string; type: 'search:buildDone'; payload: { termCount: number } }
   | { id: string; type: 'search:results'; payload: { ids: string[] } }
-  | { id: string; type: 'stats:result'; payload: unknown }
+  | { id: string; type: 'stats:result'; payload: StatsResultPayload }
   | { id: string; type: 'error'; payload: { message: string } };
 
 export function isTerminal(response: WorkerResponse): boolean {

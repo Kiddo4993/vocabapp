@@ -12,6 +12,7 @@ const TestMode = lazy(() => import('@/modes/test/TestMode'));
 const MatchMode = lazy(() => import('@/modes/match/MatchMode'));
 const BrowseScreen = lazy(() => import('@/features/browse/BrowseScreen'));
 const StatsScreen = lazy(() => import('@/features/stats/StatsScreen'));
+const StudyGuideScreen = lazy(() => import('@/features/studyGuide/StudyGuideScreen'));
 
 const MODE_COMPONENTS = {
   flashcards: FlashcardsMode,
@@ -52,6 +53,7 @@ export const router = createBrowserRouter([
       { path: 'study/:setId/:mode', element: <StudyModeRoute /> },
       { path: 'browse', element: <BrowseScreen /> },
       { path: 'stats', element: <StatsScreen /> },
+      { path: 'study-guide', element: <StudyGuideScreen /> },
     ],
   },
 ]);

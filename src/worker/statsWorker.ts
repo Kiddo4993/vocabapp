@@ -1,11 +1,24 @@
+import { getAllProgressForSet } from '@/db/progress';
+import { getRecentSessionsForSet } from '@/db/sessions';
+import { getWordsBySetPage } from '@/db/words';
+import { computeConfusionPairs } from '@/lib/confusion';
+import { computeSetStats } from '@/lib/stats';
 import type { WorkerResponse } from './protocol';
 
-/**
- * Stats aggregation handler stub. Real implementation (§10.8, §4): box
- * distribution, accuracy trend over the last 30 sessions, slowest words by
- * avgMs, words never once answered correctly — all computed off the main
- * thread since it means walking the `progress` and `sessions` stores.
- */
-export async function handleStatsCompute(requestId: string): Promise<WorkerResponse> {
-  return { id: requestId, type: 'stats:result', payload: {} };
+const STATS_WORD_LIMIT = 500;
+
+/** Stats aggregation (§4/§10.8) — box distribution, accuracy trend over
+ * the last 30 sessions, slowest words, words never once answered
+ * correctly, plus confusion pairs — all computed off the main thread. */
+export async function handleStatsCompute(requestId: string, setId: string): Promise<WorkerResponse> {
+  const [wordsPage, progress, sessions] = await Promise.all([
+    getWordsBySetPage(setId, { limit: STATS_WORD_LIMIT }),
+    getAllProgressForSet(setId),
+    getRecentSessionsForSet(setId),
+  ]);
+
+  const stats = computeSetStats(setId, wordsPage.items, progress, sessions);
+  const confusionPairs = computeConfusionPairs(wordsPage.items, progress);
+
+  return { id: requestId, type: 'stats:result', payload: { stats, confusionPairs } };
 }
