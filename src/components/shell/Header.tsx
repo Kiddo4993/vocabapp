@@ -16,6 +16,9 @@ export function Header() {
         <Link to="/stats" className="press-surface px-3 py-1.5 bg-[var(--violet)]">
           Stats
         </Link>
+        <Link to="/backup" className="press-surface px-3 py-1.5 bg-[var(--lime)]">
+          Backup
+        </Link>
       </nav>
     </header>
   );

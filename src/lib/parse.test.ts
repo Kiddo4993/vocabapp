@@ -49,6 +49,18 @@ describe('parseWordList — format 1: headword-then-gloss (Quizlet/SparkNotes ex
     expect(words[0]).toMatchObject({ id: 'fester', definition: 'to rot or become infected' });
   });
 
+  it('parses a dash-separated line correctly even when another parseable line follows it (regression)', () => {
+    // A one-line "term - definition" entry's whole text is letters/spaces/
+    // a hyphen, which also happens to match the bare-headword pattern —
+    // this must not swallow the following line as its "gloss".
+    const text = ['fester - to rot or become infected', 'avert - to turn away'].join('\n');
+    const { words, issues } = parseWordList(text);
+    expect(issues).toEqual([]);
+    expect(words).toHaveLength(2);
+    expect(words[0]).toMatchObject({ id: 'fester', definition: 'to rot or become infected' });
+    expect(words[1]).toMatchObject({ id: 'avert', definition: 'to turn away' });
+  });
+
   it('parses a two-line headword/gloss pair', () => {
     const { words, issues } = parseWordList('eccentric\nunusual or unconventional in behaviour');
     expect(issues).toEqual([]);

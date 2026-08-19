@@ -113,3 +113,10 @@ export async function getMatchBest(setId: string): Promise<number | undefined> {
 export async function setMatchBest(setId: string, ms: number): Promise<void> {
   await setMeta(matchBestKey(setId), ms);
 }
+
+/** Every meta record. Full-export use only (§4 backup) — never called
+ * from an interactive UI path. */
+export async function getAllMeta(): Promise<{ key: string; value: unknown }[]> {
+  const db = await getDB();
+  return db.getAll('meta');
+}
