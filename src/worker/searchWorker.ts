@@ -1,16 +1,49 @@
+import { getSearchIndexMeta, setSearchIndexMeta } from '@/db/meta';
+import { getAllWordsForIndexing } from '@/db/words';
+import { hashContentHashSet } from '@/lib/hash';
+import { buildSearchIndex, searchIndexQuery, searchIndexTermCount, type SearchIndex } from '@/lib/searchIndex';
 import type { WorkerResponse } from './protocol';
 
-/**
- * Search-index handler stub. Real implementation (§10.7, §2): build a
- * token → sorted posting-list inverted index over term+definition plus a
- * prefix trie over terms, persist it via setSearchIndexMeta, and rebuild
- * only when the set of contentHashes changes. Budget: under 50ms at 25k
- * words (§11) — see scripts/bench.mjs.
- */
-export async function handleSearchBuild(requestId: string): Promise<WorkerResponse> {
-  return { id: requestId, type: 'search:buildDone', payload: { termCount: 0 } };
+// In-memory cache for the lifetime of the worker — avoids re-reading meta
+// on every keystroke. Still backed by the persisted copy in `meta` (§2:
+// "persisted in meta, rebuilt only when the contentHash set changes"), so
+// a fresh worker instance (new tab, reload) picks up the cached build
+// immediately instead of re-indexing from scratch when nothing changed.
+let cached: SearchIndex | undefined;
+
+async function ensureIndex(): Promise<SearchIndex> {
+  const words = await getAllWordsForIndexing();
+  const currentHash = hashContentHashSet(words.map((w) => w.contentHash));
+
+  if (cached) return cached;
+
+  const persisted = await getSearchIndexMeta();
+  if (persisted && persisted.contentHashSetHash === currentHash) {
+    cached = persisted.serialized as SearchIndex;
+    return cached;
+  }
+
+  const index = buildSearchIndex(words);
+  cached = index;
+  await setSearchIndexMeta({ contentHashSetHash: currentHash, builtAt: Date.now(), serialized: index });
+  return index;
 }
 
-export async function handleSearchQuery(requestId: string): Promise<WorkerResponse> {
-  return { id: requestId, type: 'search:results', payload: { ids: [] } };
+/** Forces a rebuild check (called after an import completes, since the
+ * contentHash set just changed) — cheap no-op if nothing actually
+ * changed, since ensureIndex re-hashes and compares either way. */
+export async function invalidateSearchIndexCache(): Promise<void> {
+  cached = undefined;
+}
+
+export async function handleSearchBuild(requestId: string): Promise<WorkerResponse> {
+  invalidateSearchIndexCache();
+  const index = await ensureIndex();
+  return { id: requestId, type: 'search:buildDone', payload: { termCount: searchIndexTermCount(index) } };
+}
+
+export async function handleSearchQuery(requestId: string, query: string, limit?: number): Promise<WorkerResponse> {
+  const index = await ensureIndex();
+  const ids = searchIndexQuery(index, query, limit);
+  return { id: requestId, type: 'search:results', payload: { ids } };
 }
