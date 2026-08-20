@@ -51,6 +51,12 @@ export default function StatsScreen() {
         <Link to="/study-guide">
           <Button variant="violet">Study guide</Button>
         </Link>
+        <Link to="/audio-review">
+          <Button variant="cyan">Audio review</Button>
+        </Link>
+        <Link to="/enrichment">
+          <Button variant="paper">Enrichment</Button>
+        </Link>
       </div>
 
       {loading && <p className="font-body text-sm">Loading…</p>}

@@ -120,3 +120,48 @@ export async function getAllMeta(): Promise<{ key: string; value: unknown }[]> {
   const db = await getDB();
   return db.getAll('meta');
 }
+
+// ---- Enrichment (§4) — optional, switchable off; the app is fully
+// usable without any of this ever being touched. ----
+
+const ENRICHMENT_ENABLED_KEY = 'enrichmentEnabled';
+const ANTHROPIC_API_KEY_KEY = 'anthropicApiKey';
+const ENRICHMENT_CACHE_KEY = 'enrichmentCache';
+
+/** Off by default — the switch the user has to explicitly flip on. */
+export async function isEnrichmentEnabled(): Promise<boolean> {
+  return (await getMeta<boolean>(ENRICHMENT_ENABLED_KEY)) ?? false;
+}
+
+export async function setEnrichmentEnabled(enabled: boolean): Promise<void> {
+  await setMeta(ENRICHMENT_ENABLED_KEY, enabled);
+}
+
+/** Stored locally only — sent directly from the browser to the Anthropic
+ * API (there's no backend to proxy through), never anywhere else. */
+export async function getAnthropicApiKey(): Promise<string | undefined> {
+  return getMeta<string>(ANTHROPIC_API_KEY_KEY);
+}
+
+export async function setAnthropicApiKey(key: string): Promise<void> {
+  await setMeta(ANTHROPIC_API_KEY_KEY, key);
+}
+
+export interface EnrichmentSuggestion {
+  simple?: string;
+  examples?: string[];
+  synonyms?: string[];
+}
+
+/** Cached by contentHash (§4: "Cache by contentHash so re-running is
+ * free") — a word whose content hasn't changed since it was last enriched
+ * never triggers a second API call, approved or not. */
+export async function getEnrichmentCache(): Promise<Record<string, EnrichmentSuggestion>> {
+  return (await getMeta<Record<string, EnrichmentSuggestion>>(ENRICHMENT_CACHE_KEY)) ?? {};
+}
+
+export async function setEnrichmentCacheEntry(contentHash: string, suggestion: EnrichmentSuggestion): Promise<void> {
+  const cache = await getEnrichmentCache();
+  cache[contentHash] = suggestion;
+  await setMeta(ENRICHMENT_CACHE_KEY, cache);
+}
