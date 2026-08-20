@@ -14,6 +14,8 @@ const BrowseScreen = lazy(() => import('@/features/browse/BrowseScreen'));
 const StatsScreen = lazy(() => import('@/features/stats/StatsScreen'));
 const StudyGuideScreen = lazy(() => import('@/features/studyGuide/StudyGuideScreen'));
 const BackupScreen = lazy(() => import('@/features/backup/BackupScreen'));
+const EnrichmentScreen = lazy(() => import('@/features/enrichment/EnrichmentScreen'));
+const AudioReviewScreen = lazy(() => import('@/features/audioReview/AudioReviewScreen'));
 
 const MODE_COMPONENTS = {
   flashcards: FlashcardsMode,
@@ -56,6 +58,8 @@ export const router = createBrowserRouter([
       { path: 'stats', element: <StatsScreen /> },
       { path: 'study-guide', element: <StudyGuideScreen /> },
       { path: 'backup', element: <BackupScreen /> },
+      { path: 'enrichment', element: <EnrichmentScreen /> },
+      { path: 'audio-review', element: <AudioReviewScreen /> },
     ],
   },
 ]);
