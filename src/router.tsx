@@ -16,6 +16,7 @@ const StudyGuideScreen = lazy(() => import('@/features/studyGuide/StudyGuideScre
 const BackupScreen = lazy(() => import('@/features/backup/BackupScreen'));
 const EnrichmentScreen = lazy(() => import('@/features/enrichment/EnrichmentScreen'));
 const AudioReviewScreen = lazy(() => import('@/features/audioReview/AudioReviewScreen'));
+const ImportScreen = lazy(() => import('@/features/importScreen/ImportScreen'));
 
 const MODE_COMPONENTS = {
   flashcards: FlashcardsMode,
@@ -60,6 +61,7 @@ export const router = createBrowserRouter([
       { path: 'backup', element: <BackupScreen /> },
       { path: 'enrichment', element: <EnrichmentScreen /> },
       { path: 'audio-review', element: <AudioReviewScreen /> },
+      { path: 'import', element: <ImportScreen /> },
     ],
   },
 ]);
