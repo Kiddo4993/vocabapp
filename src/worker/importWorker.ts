@@ -4,6 +4,7 @@ import { getExistingHashes, putWordsBatch } from '@/db/words';
 import { contentHash } from '@/lib/hash';
 import { parseWordList, type ParsedWord } from '@/lib/parse';
 import type { Word } from '@/types/domain';
+import { invalidateSearchIndexCache } from './searchWorker';
 import type { ImportStartPayload, WorkerResponse } from './protocol';
 
 const BATCH_SIZE = 500;
@@ -88,6 +89,12 @@ export async function* handleImport(
   }
 
   await clearImportOffset(jobId);
+
+  // The contentHash set just changed (if anything was actually written) —
+  // without this, a search made later in the same worker's lifetime would
+  // keep serving the pre-import cached index and silently miss the new
+  // words until the next full reload.
+  if (written > 0) await invalidateSearchIndexCache();
 
   yield {
     id: requestId,

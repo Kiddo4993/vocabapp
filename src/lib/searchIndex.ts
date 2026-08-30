@@ -64,7 +64,13 @@ export function buildSearchIndex(words: Indexable[]): SearchIndex {
 }
 
 /** Prefix match against the term trie (fast, O(query length)) unioned with
- * token-AND matches over term+definition, prefix matches ranked first. */
+ * token-AND matches over term+definition, prefix matches ranked first.
+ *
+ * `limit` is respected while building the result, not just applied as a
+ * final `.slice()` — a common short prefix (or a common word token) can
+ * match a large fraction of a 25k-word corpus, and spreading the full
+ * match set into an array before slicing pays O(matches) cost even when
+ * the caller only wanted the first 50. */
 export function searchIndexQuery(index: SearchIndex, queryText: string, limit = 50): string[] {
   const q = queryText.trim().toLowerCase();
   if (!q) return [];
@@ -80,11 +86,29 @@ export function searchIndexQuery(index: SearchIndex, queryText: string, limit = 
   let tokenMatches: Set<string> | undefined;
   for (const t of tokens) {
     const set = index.postings.get(t) ?? new Set<string>();
-    tokenMatches = tokenMatches === undefined ? new Set(set) : new Set([...tokenMatches].filter((id) => set.has(id)));
+    if (tokenMatches === undefined) {
+      // First (and, for the common single-token case, only) token — the
+      // posting list can be used directly, no copy needed.
+      tokenMatches = set;
+    } else {
+      const next = new Set<string>();
+      for (const id of tokenMatches) if (set.has(id)) next.add(id);
+      tokenMatches = next;
+    }
   }
 
-  const ordered = [...prefixMatches, ...[...(tokenMatches ?? new Set<string>())].filter((id) => !prefixMatches.has(id))];
-  return ordered.slice(0, limit);
+  const result: string[] = [];
+  for (const id of prefixMatches) {
+    if (result.length >= limit) break;
+    result.push(id);
+  }
+  if (tokenMatches) {
+    for (const id of tokenMatches) {
+      if (result.length >= limit) break;
+      if (!prefixMatches.has(id)) result.push(id);
+    }
+  }
+  return result;
 }
 
 export function searchIndexTermCount(index: SearchIndex): number {
