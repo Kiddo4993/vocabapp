@@ -48,22 +48,37 @@ function ensureListener() {
   });
 }
 
+/** The actual request/response bridge — a plain function so it's usable
+ * both from the hook below and from scripts/bench.mjs (via the debug hook
+ * at the bottom of this file), letting the bench measure raw worker
+ * round-trip latency (e.g. search) without the UI's 150ms debounce in the
+ * way. */
+function sendWorkerRequest(
+  req: WorkerRequestInput,
+  onProgress?: (response: WorkerResponse) => void,
+): Promise<WorkerResponse> {
+  ensureListener();
+  const id = crypto.randomUUID();
+  return new Promise((resolve) => {
+    pending.set(id, { resolve, onProgress });
+    getWorker().postMessage({ ...req, id } as WorkerRequest);
+  });
+}
+
 /** Promise-based request/response bridge over the typed worker protocol
  * (§2). `onProgress` receives any non-terminal responses sharing the same
  * request id (e.g. import:progress) before the returned promise settles
  * on the terminal one. */
 export function useWorkerRequest() {
-  const request = useCallback(
-    (req: WorkerRequestInput, onProgress?: (response: WorkerResponse) => void): Promise<WorkerResponse> => {
-      ensureListener();
-      const id = crypto.randomUUID();
-      return new Promise((resolve) => {
-        pending.set(id, { resolve, onProgress });
-        getWorker().postMessage({ ...req, id } as WorkerRequest);
-      });
-    },
-    [],
-  );
-
+  const request = useCallback(sendWorkerRequest, []);
   return { request };
+}
+
+// scripts/bench.mjs's only hook into the app: lets it issue real worker
+// requests (search:query timing, etc.) through the same singleton worker
+// the UI uses, without the 150ms search debounce or React re-renders
+// distorting the measurement. Doesn't affect app behaviour — nothing in
+// the app reads this.
+if (typeof window !== 'undefined') {
+  (window as unknown as { __vocabLabBench?: unknown }).__vocabLabBench = { sendWorkerRequest };
 }

@@ -12,10 +12,15 @@ import type { WorkerResponse } from './protocol';
 let cached: SearchIndex | undefined;
 
 async function ensureIndex(): Promise<SearchIndex> {
+  // The in-memory cache check MUST come before any store read — this used
+  // to read + re-hash every word on every single query, before ever
+  // consulting `cached`, which completely defeated the cache and made
+  // search latency scale with corpus size (measured ~2s/query at 25k
+  // words instead of the <50ms budget, via scripts/bench.mjs).
+  if (cached) return cached;
+
   const words = await getAllWordsForIndexing();
   const currentHash = hashContentHashSet(words.map((w) => w.contentHash));
-
-  if (cached) return cached;
 
   const persisted = await getSearchIndexMeta();
   if (persisted && persisted.contentHashSetHash === currentHash) {
