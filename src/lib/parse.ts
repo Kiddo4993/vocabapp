@@ -19,6 +19,15 @@
 //   3. numbered multi-sense glosses — a bare headword line followed by
 //      `1. ...`, `2. ...` lines.
 // Anything else becomes a REVIEW issue instead of being silently dropped.
+//
+// A fourth shape lives under format 1's umbrella rather than as a separate
+// numbered format, since it's still fundamentally "headword, then gloss on
+// the next line" — it just needs two extra things recognised within that
+// gloss line: a `(pos.)` prefix, and a trailing `(example sentence.)`
+// instead of a quoted one. This is SparkNotes' own actual vocabulary-list
+// export shape (`## term` markdown header, `(pos.) definition (example.)`
+// gloss, multiple senses inline as `1. ... 2. ...` on one line) — real
+// SAT-list text pasted in comes out this way, not as neat quoted examples.
 
 export interface ParsedSense {
   pos?: string;
@@ -78,7 +87,12 @@ export function extractExamples(text: string): { definition: string; examples: s
 }
 
 const BLANK_RE = /^\s*$/;
-const COMMENT_RE = /^\s*#/;
+/** A single `#` starts a title/comment line to skip silently (`# Notes`).
+ * `##`-or-deeper is a markdown *header* — real content (a headword), not a
+ * comment — so it's deliberately excluded here and stripped separately by
+ * HEADER_STRIP_RE instead of being swallowed. */
+const COMMENT_RE = /^\s*#(?!#)/;
+const HEADER_STRIP_RE = /^\s*#{2,}\s*/;
 /** A "bare" headword line: just a term/phrase, no separators that would
  * make it a format 1a or format 2 line. */
 const BARE_TERM_RE = /^[A-Za-z][A-Za-z' -]*$/;
@@ -88,6 +102,73 @@ const INLINE_GLOSS_RE = /^([A-Za-z][A-Za-z' -]*?)\s*(?:\t+|—|--|- )\s*(.+)$/;
 const INLINE_POS_RE = /^([A-Za-z][A-Za-z' -]*?)\s*\(([^)]+)\)\s*(?:-|—|:)\s*(.+)$/;
 /** Format 3 continuation line: `1. (pos) meaning` or `1. meaning`. */
 const NUMBERED_SENSE_RE = /^(\d+)[.)]\s*(?:\(([^)]+)\)\s*)?(.+)$/;
+/** A `(pos.)` tag leading a gloss, e.g. `(v.) to humiliate, degrade`. */
+const LEADING_POS_RE = /^\(([^)]+)\)\s*/;
+/** One trailing `(...)` group, no nested parens — checked against
+ * TRAILING_EXAMPLE_SENTENCE_RE below before it's trusted as an example
+ * rather than a genuine parenthetical aside in the definition itself. */
+const TRAILING_PAREN_RE = /\s*\(([^()]+)\)\s*$/;
+const TRAILING_EXAMPLE_SENTENCE_RE = /[.!?]["”]?$/;
+/** Detects two-or-more inline numbered senses on a *single* line — the
+ * SparkNotes shape (`1. (v.) ... 2. (v.) ...`), as opposed to format 3's
+ * one-sense-per-line shape. */
+const INLINE_SENSE_MARKER_RE = /(?:^|\s)(\d+)\.\s+/g;
+
+/** Strips a leading `(pos.)` tag off a gloss, if present. */
+function extractLeadingPos(text: string): { pos?: string; rest: string } {
+  const m = LEADING_POS_RE.exec(text);
+  if (m) return { pos: m[1].trim(), rest: text.slice(m[0].length) };
+  return { rest: text };
+}
+
+/** Peels trailing `(sentence.)` groups off a gloss as examples — the
+ * plain-parenthetical convention (as opposed to extractExamples' quoted
+ * one). Only peels a group that actually looks like a sentence (ends in
+ * sentence punctuation), so a genuine parenthetical aside inside the
+ * definition itself — `denounce (v.) to criticize (formally)` — isn't
+ * mistaken for an example and swallowed. Never empties the definition
+ * entirely: if peeling would do that, the candidate is put back. */
+function extractTrailingParenExamples(text: string): { definition: string; examples: string[] } {
+  const examples: string[] = [];
+  let rest = text.trim();
+  for (;;) {
+    const m = TRAILING_PAREN_RE.exec(rest);
+    if (!m) break;
+    const inner = m[1].trim();
+    if (!TRAILING_EXAMPLE_SENTENCE_RE.test(inner)) break;
+    const before = rest.slice(0, m.index).trim();
+    if (!before) break; // would consume the whole gloss — not a real example
+    examples.unshift(inner);
+    rest = before;
+  }
+  return { definition: rest, examples };
+}
+
+/** Splits a single line carrying multiple inline numbered senses
+ * (`1. ... 2. ... 3. ...`, all on one line — SparkNotes' shape) into their
+ * raw per-sense text. Returns `[]` when there's fewer than two markers, so
+ * callers can tell "not this format" from "one sense, oddly numbered". */
+function splitInlineSenses(text: string): string[] {
+  const markers = [...text.matchAll(INLINE_SENSE_MARKER_RE)];
+  if (markers.length < 2) return [];
+  const chunks: string[] = [];
+  for (let k = 0; k < markers.length; k++) {
+    const start = markers[k].index + markers[k][0].length;
+    const end = k + 1 < markers.length ? markers[k + 1].index : text.length;
+    chunks.push(text.slice(start, end).trim());
+  }
+  return chunks;
+}
+
+/** Full gloss-line parse for format 1b's "next line" — pos prefix, then
+ * trailing-paren examples, then (still) quoted examples, so all three
+ * conventions this parser understands compose on the same line. */
+function parseGlossChunk(raw: string): { pos?: string; definition: string; examples: string[] } {
+  const { pos, rest } = extractLeadingPos(raw);
+  const afterParens = extractTrailingParenExamples(rest);
+  const afterQuotes = extractExamples(afterParens.definition);
+  return { pos, definition: afterQuotes.definition, examples: [...afterParens.examples, ...afterQuotes.examples] };
+}
 
 function richness(w: ParsedWord): number {
   return (
@@ -176,8 +257,45 @@ export function parseWordList(text: string): ParseResult {
       }
     }
 
-    // Format 3: bare headword followed by numbered senses.
-    if (BARE_TERM_RE.test(line.trim())) {
+    // A markdown header (`## term`) is still just a bare headword line
+    // underneath — strip the hashes before any of the format-3/1b checks
+    // below so a SparkNotes-style `## abase` is recognised the same way a
+    // plain `abase` line would be.
+    const dehashedLine = line.replace(HEADER_STRIP_RE, '');
+
+    // Format 3/4: bare headword followed by numbered senses.
+    if (BARE_TERM_RE.test(dehashedLine.trim())) {
+      const next = rawLines[i + 1];
+      const nextLooksLikeGloss = next !== undefined && !BLANK_RE.test(next) && !COMMENT_RE.test(next);
+
+      // Format 4: bare headword, then a gloss line carrying two-or-more
+      // inline numbered senses (`1. (v.) ... 2. (v.) ...`) — SparkNotes'
+      // actual export shape. Checked *before* format 3's one-line-per-sense
+      // loop below: NUMBERED_SENSE_RE's `(.+)$` is greedy and would
+      // otherwise match this same line as a single garbled "sense 1" whose
+      // gloss text still has the literal "2. ..." stuck inside it.
+      if (nextLooksLikeGloss) {
+        const inlineChunks = splitInlineSenses(next);
+        if (inlineChunks.length > 0) {
+          const parsed = inlineChunks.map(parseGlossChunk).filter((s) => s.definition);
+          if (parsed.length > 0) {
+            const [first, ...rest] = parsed;
+            words.push({
+              id: slugify(dehashedLine),
+              term: dehashedLine.trim().toLowerCase(),
+              pos: first.pos,
+              definition: first.definition,
+              examples: first.examples,
+              senses: rest.map((s) => ({ pos: s.pos, definition: s.definition, examples: s.examples })),
+              sourceLine: lineNo,
+            });
+            i += 2;
+            continue;
+          }
+        }
+      }
+
+      // Format 3: numbered senses, one per line.
       const senses: ParsedSense[] = [];
       let j = i + 1;
       while (j < rawLines.length) {
@@ -191,8 +309,8 @@ export function parseWordList(text: string): ParseResult {
       if (senses.length > 0) {
         const [first, ...rest] = senses;
         words.push({
-          id: slugify(line),
-          term: line.trim().toLowerCase(),
+          id: slugify(dehashedLine),
+          term: dehashedLine.trim().toLowerCase(),
           pos: first.pos,
           definition: first.definition,
           examples: first.examples,
@@ -203,19 +321,16 @@ export function parseWordList(text: string): ParseResult {
         continue;
       }
 
-      // Format 1b: bare headword, gloss on the very next line.
-      const next = rawLines[i + 1];
-      if (
-        next !== undefined &&
-        !BLANK_RE.test(next) &&
-        !COMMENT_RE.test(next) &&
-        !NUMBERED_SENSE_RE.test(next.trim())
-      ) {
-        const { definition, examples } = extractExamples(next.trim());
+      // Format 1b: bare headword, gloss on the very next line — also
+      // handles a `(pos.)`-prefixed, paren-delimited-example gloss (the
+      // single-sense case of format 4's shape), via parseGlossChunk.
+      if (nextLooksLikeGloss && !NUMBERED_SENSE_RE.test(next.trim())) {
+        const { pos, definition, examples } = parseGlossChunk(next.trim());
         if (definition) {
           words.push({
-            id: slugify(line),
-            term: line.trim().toLowerCase(),
+            id: slugify(dehashedLine),
+            term: dehashedLine.trim().toLowerCase(),
+            pos,
             definition,
             examples,
             senses: [],

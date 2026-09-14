@@ -128,6 +128,84 @@ describe('parseWordList — format 3: numbered multi-sense glosses', () => {
   });
 });
 
+describe('parseWordList — format 4: SparkNotes export (## header, (pos.) + trailing-paren example)', () => {
+  it('parses a single-sense entry with a markdown header and a parenthetical example', () => {
+    const text = [
+      '## abase',
+      '(v.) to humiliate, degrade (After being overthrown and abased, the deposed leader offered to bow down to his conqueror.)',
+    ].join('\n');
+    const { words, issues } = parseWordList(text);
+    expect(issues).toEqual([]);
+    expect(words).toHaveLength(1);
+    expect(words[0]).toMatchObject({
+      id: 'abase',
+      term: 'abase',
+      pos: 'v.',
+      definition: 'to humiliate, degrade',
+      examples: ['After being overthrown and abased, the deposed leader offered to bow down to his conqueror.'],
+    });
+  });
+
+  it('splits inline numbered senses on a single gloss line, each with its own pos and example', () => {
+    const text = [
+      '## abide',
+      "1. (v.) to put up with (Though he did not agree with the decision, Chuck decided to abide by it.) 2. (v.) to remain (Despite the beating they've taken from the weather throughout the millennia, the mountains abide.)",
+    ].join('\n');
+    const { words, issues } = parseWordList(text);
+    expect(issues).toEqual([]);
+    expect(words).toHaveLength(1);
+    const w = words[0];
+    expect(w.pos).toBe('v.');
+    expect(w.definition).toBe('to put up with');
+    expect(w.examples).toEqual(['Though he did not agree with the decision, Chuck decided to abide by it.']);
+    expect(w.senses).toHaveLength(1);
+    expect(w.senses[0]).toMatchObject({
+      pos: 'v.',
+      definition: 'to remain',
+      examples: ["Despite the beating they've taken from the weather throughout the millennia, the mountains abide."],
+    });
+  });
+
+  it('handles three inline senses (not just two)', () => {
+    const text = [
+      '## compound',
+      '1. (v.) to combine parts (one.) 2. (n.) a combination of different parts (two.) 3. (n.) a walled area containing a group of buildings (three.)',
+    ].join('\n');
+    const { words } = parseWordList(text);
+    expect(words[0].senses).toHaveLength(2);
+    expect(words[0].senses.map((s) => s.definition)).toEqual([
+      'a combination of different parts',
+      'a walled area containing a group of buildings',
+    ]);
+  });
+
+  it('treats a single `#` line as a comment/title to skip, not a headword', () => {
+    const text = ['# SAT Vocabulary List', '', '## abase', '(v.) to humiliate, degrade (Example sentence.)'].join(
+      '\n',
+    );
+    const { words, issues } = parseWordList(text);
+    expect(issues).toEqual([]);
+    expect(words).toHaveLength(1);
+    expect(words[0].id).toBe('abase');
+  });
+
+  it('does not mistake a non-sentence parenthetical aside in the gloss for an example', () => {
+    // No trailing period inside the parens, so it reads as part of the
+    // definition rather than an example sentence.
+    const text = ['## denounce', '(v.) to criticize (formally)'].join('\n');
+    const { words } = parseWordList(text);
+    expect(words[0].definition).toBe('to criticize (formally)');
+    expect(words[0].examples).toEqual([]);
+  });
+
+  it('still parses a truncated entry (definition present, no example) without erroring', () => {
+    const text = ['## disavow', '(v.) to deny knowledge of or responsibility for'].join('\n');
+    const { words, issues } = parseWordList(text);
+    expect(issues).toEqual([]);
+    expect(words[0]).toMatchObject({ pos: 'v.', definition: 'to deny knowledge of or responsibility for', examples: [] });
+  });
+});
+
 describe('parseWordList — example extraction across formats', () => {
   it('extracts examples from an inline-pos entry', () => {
     const { words } = parseWordList(
