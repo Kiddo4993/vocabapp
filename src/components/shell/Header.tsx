@@ -9,7 +9,10 @@ export function Header() {
       >
         Vocab Lab
       </Link>
-      <nav className="flex gap-2 sm:gap-3 font-display uppercase text-xs sm:text-sm">
+      <nav className="flex gap-2 sm:gap-3 font-display uppercase text-xs sm:text-sm flex-wrap">
+        <Link to="/how-to-use" className="press-surface px-3 py-1.5 bg-[var(--yellow)]">
+          How to Use
+        </Link>
         <Link to="/browse" className="press-surface px-3 py-1.5 bg-[var(--cyan)]">
           Browse
         </Link>
