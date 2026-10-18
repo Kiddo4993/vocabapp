@@ -38,6 +38,18 @@ export default function HomeScreen() {
         <p className="font-display text-5xl leading-none mt-2">{loading ? '—' : totalDue}</p>
       </Card>
 
+      <Card className="bg-[var(--cyan)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <p className="font-display uppercase text-xs tracking-tight">Need a walkthrough?</p>
+          <p className="font-body text-xs mt-1 text-black/80">
+            Learn how the 5-box Leitner system, 5 study modes, and shortcuts work.
+          </p>
+        </div>
+        <Link to="/how-to-use">
+          <Button variant="ink">How to Use App →</Button>
+        </Link>
+      </Card>
+
       {error && (
         <Card className="bg-[var(--red)]">
           <p className="font-body text-sm">Couldn't load your sets: {error.message}</p>
@@ -56,19 +68,34 @@ export default function HomeScreen() {
 
       <div className="flex flex-col gap-3">
         {sets?.map((set) => (
-          <Card key={set.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <h2 className="font-display uppercase text-base tracking-tight">{set.name}</h2>
-              <p className="font-body text-xs mt-1">
-                {set.total} word{set.total === 1 ? '' : 's'} · {set.due} due
-              </p>
+          <Card key={set.id} className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b-[2px] border-black pb-2">
+              <div>
+                <h2 className="font-display uppercase text-base tracking-tight">{set.name}</h2>
+                <p className="font-body text-xs mt-0.5 text-black/70">
+                  {set.total} word{set.total === 1 ? '' : 's'} · {set.due} due
+                </p>
+              </div>
+              <span className="font-mono text-xs uppercase px-2 py-0.5 bg-[var(--paper)] border-[1.5px] border-black self-start sm:self-auto">
+                {set.due > 0 ? `${set.due} due for review` : 'All caught up!'}
+              </span>
             </div>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 flex-wrap items-center">
+              <span className="font-display text-xs uppercase text-black/60 mr-1">Study:</span>
               <Link to={`/study/${set.id}/flashcards`}>
                 <Button variant="pink">Flashcards</Button>
               </Link>
               <Link to={`/study/${set.id}/learn`}>
                 <Button variant="cyan">Learn</Button>
+              </Link>
+              <Link to={`/study/${set.id}/write`}>
+                <Button variant="violet">Write</Button>
+              </Link>
+              <Link to={`/study/${set.id}/test`}>
+                <Button variant="lime">Test</Button>
+              </Link>
+              <Link to={`/study/${set.id}/match`}>
+                <Button variant="yellow">Match</Button>
               </Link>
             </div>
           </Card>
