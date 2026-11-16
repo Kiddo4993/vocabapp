@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SessionBar } from '@/components/shell/SessionBar';
 import { Button } from '@/components/ui/Button';
@@ -268,6 +268,28 @@ function TestQuestionView({
   answer: TestAnswer;
   onChange: (a: TestAnswer) => void;
 }) {
+  // Keys 1-4 pick a multiple-choice option and T/F answer true/false, like Learn.
+  // Ignored while typing in a box, so a written answer can contain those letters.
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (question.type === 'multiple-choice') {
+        const n = Number(e.key);
+        if (Number.isInteger(n) && n >= 1 && n <= question.options.length) {
+          onChange({ type: 'multiple-choice', selectedIndex: n - 1 });
+        }
+      } else if (question.type === 'true-false') {
+        const k = e.key.toLowerCase();
+        if (k === 't') onChange({ type: 'true-false', guess: true });
+        else if (k === 'f') onChange({ type: 'true-false', guess: false });
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [question, onChange]);
+
   if (question.type === 'written') {
     return (
       <div className="w-full max-w-md flex flex-col gap-3">
@@ -324,13 +346,13 @@ function TestQuestionView({
             variant={answer?.type === 'true-false' && answer.guess ? 'lime' : 'paper'}
             onClick={() => onChange({ type: 'true-false', guess: true })}
           >
-            True
+            True (T)
           </Button>
           <Button
             variant={answer?.type === 'true-false' && !answer.guess ? 'pink' : 'paper'}
             onClick={() => onChange({ type: 'true-false', guess: false })}
           >
-            False
+            False (F)
           </Button>
         </div>
       </div>
